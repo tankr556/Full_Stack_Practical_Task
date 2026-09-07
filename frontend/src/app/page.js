@@ -14,15 +14,27 @@ export default function ProjectDetailPage() {
     return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTllZDhmOTUyN2ExMDg5MWZlMzVjMTYiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODg3OTY2ODEsImV4cCI6MTc4OTQwMTQ4MX0.uGa_CDiBOnZjMu5qnh8-lJ90Tp41fOVzGQMmZMM8we0';
   });
 
+  const defaultMockTasks = [
+    { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
+    { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
+    { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
+  ];
+
   // State
-  const [tasks, setTasks] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [activeTask, setActiveTask] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [tasks, setTasks] = useState(defaultMockTasks);
+  const [activities, setActivities] = useState([
+    { _id: 'a1', details: 'Added comment to task "Implement Task Comments API"', createdAt: new Date().toISOString() },
+    { _id: 'a2', details: 'Changed status from todo to in_progress', createdAt: new Date(Date.now() - 3600000).toISOString() },
+    { _id: 'a3', details: 'Created task "Setup Authentication Middleware"', createdAt: new Date(Date.now() - 7200000).toISOString() }
+  ]);
+  const [activeTask, setActiveTask] = useState('t1');
+  const [comments, setComments] = useState([
+    { _id: 'c1', body: 'Please verify permissions before merging', createdAt: new Date().toISOString(), author: { name: 'Lead Dev' } }
+  ]);
   
   // Loading & Error States
-  const [loadingTasks, setLoadingTasks] = useState(true);
-  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [loadingActivities, setLoadingActivities] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
