@@ -8,6 +8,7 @@ A production-ready Full-Stack Task Management Application built using **Next.js 
 
 * **Frontend Live Application (Vercel)**: [https://full-stack-practical-task-1zuz.vercel.app/](https://full-stack-practical-task-1zuz.vercel.app/)
 * **Backend REST API (Render)**: [https://full-stack-practical-task-1.onrender.com](https://full-stack-practical-task-1.onrender.com)
+* **Screen Recording Video (Loom)**: [https://www.loom.com/share/620944f6f6004858a4694d21a4aab402](https://www.loom.com/share/620944f6f6004858a4694d21a4aab402)
 * **GitHub Repository**: [https://github.com/tankr556/Full_Stack_Practical_Task.git](https://github.com/tankr556/Full_Stack_Practical_Task.git)
 
 ---

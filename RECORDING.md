@@ -1,7 +1,7 @@
 # Screen Recording & Narration Reference (RECORDING.md)
 
 ## Video Recording Details
-- **Loom / OBS Recording Link**: `[INSERT_YOUR_LOOM_OR_VIDEO_LINK_HERE]`
+- **Loom / OBS Recording Link**: https://www.loom.com/share/620944f6f6004858a4694d21a4aab402
 - **Duration**: ~90-120 minutes
 
 ## Recorded Screen Workflow & Narration Summary
