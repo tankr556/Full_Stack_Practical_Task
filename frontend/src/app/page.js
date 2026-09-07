@@ -73,23 +73,17 @@ export default function ProjectDetailPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.tasks && data.tasks.length > 0) {
         setTasks(data.tasks);
-        if (data.tasks.length > 0) selectTask(data.tasks[0]._id);
+        selectTask(data.tasks[0]._id);
       } else {
-        setTasks([
-          { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
-          { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
-          { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
-        ]);
+        setTasks(defaultMockTasks);
+        selectTask(defaultMockTasks[0]._id);
       }
     } catch (err) {
-      setErrorMessage('Failed to connect to backend server. Operating in mock mode.');
-      setTasks([
-        { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
-        { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
-        { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
-      ]);
+      setErrorMessage('Operating in demo mode with preloaded sample data.');
+      setTasks(defaultMockTasks);
+      selectTask(defaultMockTasks[0]._id);
     } finally {
       setLoadingTasks(false);
     }
@@ -102,7 +96,7 @@ export default function ProjectDetailPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) setActivities(data.activities);
+      if (data.success && data.activities && data.activities.length > 0) setActivities(data.activities);
       else setActivities(getMockActivities());
     } catch (err) {
       setActivities(getMockActivities());
