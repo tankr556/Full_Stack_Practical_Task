@@ -221,3 +221,24 @@ export const getActivityFeed = async (req, res, next) => {
     return next(error);
   }
 };
+
+// Get User Projects or auto-create a default project
+export const getProjects = async (req, res, next) => {
+  try {
+    let projects = await Project.find({ 'members.user': req.user._id });
+    if (projects.length === 0) {
+      // Auto create a project for this user if none exists
+      const defaultProject = new Project({
+        name: 'Default Practical Project',
+        description: 'Demo project for practical assignment',
+        createdBy: req.user._id,
+        members: [{ user: req.user._id, role: 'admin' }],
+      });
+      await defaultProject.save();
+      projects = [defaultProject];
+    }
+    return res.status(200).json({ success: true, projects });
+  } catch (error) {
+    return next(error);
+  }
+};

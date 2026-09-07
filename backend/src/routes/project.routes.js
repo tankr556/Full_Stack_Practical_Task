@@ -8,12 +8,16 @@ import {
   getTaskComments,
   addComment,
   getActivityFeed,
+  getProjects,
 } from '../controllers/project.controller.js';
 import { exportToAirtable } from '../controllers/airtable.controller.js';
 
 const router = Router();
 
 router.use(protect);
+
+// Project list endpoint
+router.get('/', getProjects);
 
 // Task management & query endpoints
 router.post('/:projectId/tasks', checkProjectAccess(['admin', 'member']), createTask);
