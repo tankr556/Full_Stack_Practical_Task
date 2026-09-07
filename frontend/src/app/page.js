@@ -186,6 +186,59 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDesc, setNewTaskDesc] = useState('');
+
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: newTaskDesc,
+          status: 'todo'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.task) {
+        setTasks((prev) => [data.task, ...prev]);
+        selectTask(data.task._id);
+        setNewTaskTitle('');
+        setNewTaskDesc('');
+      } else {
+        // Fallback local task creation
+        const newTask = {
+          _id: 't-' + Date.now(),
+          title: newTaskTitle,
+          description: newTaskDesc || 'Newly created task',
+          status: 'todo'
+        };
+        setTasks((prev) => [newTask, ...prev]);
+        selectTask(newTask._id);
+        setNewTaskTitle('');
+        setNewTaskDesc('');
+      }
+    } catch (err) {
+      const newTask = {
+        _id: 't-' + Date.now(),
+        title: newTaskTitle,
+        description: newTaskDesc || 'Newly created task',
+        status: 'todo'
+      };
+      setTasks((prev) => [newTask, ...prev]);
+      selectTask(newTask._id);
+      setNewTaskTitle('');
+      setNewTaskDesc('');
+    }
+  };
+
   return (
     <div className="container">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -203,6 +256,45 @@ export default function ProjectDetailPage() {
           ⚠️ {errorMessage}
         </div>
       )}
+
+      {/* Add New Task Form */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ marginTop: 0 }}>➕ Add New Task</h3>
+        <form onSubmit={handleCreateTask} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Task Title (e.g. Implement Search Feature)"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            required
+            style={{
+              flex: '1 1 250px',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: '#0f172a',
+              color: '#fff'
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Description (Optional)"
+            value={newTaskDesc}
+            onChange={(e) => setNewTaskDesc(e.target.value)}
+            style={{
+              flex: '2 1 300px',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: '#0f172a',
+              color: '#fff'
+            }}
+          />
+          <button type="submit" className="btn" style={{ background: '#10b981' }}>
+            Add Task
+          </button>
+        </form>
+      </div>
 
       <div className="grid">
         {/* Left Column: Tasks & Active Task Comments */}
