@@ -1,7 +1,7 @@
 {
-  "name": "ecommerce-backend-api",
+  "name": "task-management-backend-api",
   "version": "1.0.0",
-  "description": "E-commerce REST API with authentication, product management, and cart management",
+  "description": "task management api",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "keywords": [
-    "ecommerce",
+    "task-management",
     "nodejs",
     "express",
     "mongodb",

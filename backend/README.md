@@ -1,6 +1,6 @@
-# E-commerce REST API Backend
+# Task Management REST API Backend
 
-A production-ready E-commerce REST API built using **Node.js, Express, MongoDB, Mongoose, Zod**.
+A production-ready Task Management REST API built using **Node.js, Express, MongoDB, Mongoose, Zod**.
 
 ## Tech Stack
 *   **Runtime Environment**: Node.js (ES Modules syntax: `"type": "module"`)
@@ -15,7 +15,7 @@ A production-ready E-commerce REST API built using **Node.js, Express, MongoDB, 
 ## Folder Structure
 ```text
 ├── postman/
-│   └── ecommerce-api.postman_collection.json  # Complete Postman Collection
+│   └── task-management-api.postman_collection.json  # Complete Postman Collection
 ├── src/
 │   ├── config/
 │   │   └── database.js                       # MongoDB connection setup
@@ -59,7 +59,7 @@ npm install
 Create a `.env` file in the root directory based on `.env.example`:
 ```env
 PORT=5000
-MONGODB_URI=mongodb://127.0.0.1:27017/ecommerce-backend
+MONGODB_URI=mongodb://127.0.0.1:27017/task_management_db
 JWT_SECRET=supersecretkey123
 JWT_EXPIRES_IN=7d
 
