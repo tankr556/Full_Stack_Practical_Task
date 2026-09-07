@@ -21,7 +21,7 @@ app.use(express.json());
 // General rate limiter
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Limit each IP to 100 requests per window
+  limit: 1000, // Increased for smooth testing/demo
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {
@@ -33,7 +33,7 @@ const generalLimiter = rateLimit({
 // Stricter rate limiter for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 20, // Limit each IP to 20 auth attempts per window
+  limit: 500, // Increased for smooth testing/demo
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {
