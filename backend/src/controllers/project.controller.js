@@ -235,7 +235,27 @@ export const getProjects = async (req, res, next) => {
         members: [{ user: req.user._id, role: 'admin' }],
       });
       await defaultProject.save();
+
+      // Seed initial sample tasks for this project
+      await Task.create([
+        { title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles', project: defaultProject._id },
+        { title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints', project: defaultProject._id },
+        { title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff', project: defaultProject._id }
+      ]);
+
       projects = [defaultProject];
+    } else {
+      // Check if project has tasks, if 0 create initial tasks
+      for (const proj of projects) {
+        const count = await Task.countDocuments({ project: proj._id });
+        if (count === 0) {
+          await Task.create([
+            { title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles', project: proj._id },
+            { title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints', project: proj._id },
+            { title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff', project: proj._id }
+          ]);
+        }
+      }
     }
     return res.status(200).json({ success: true, projects });
   } catch (error) {
