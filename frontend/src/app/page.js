@@ -172,6 +172,7 @@ export default function ProjectDetailPage() {
       });
       const data = await res.json();
       alert(data.message || 'Export completed successfully!');
+      fetchTasks();
     } catch (err) {
       setErrorMessage('Export failed. Verify server AIRTABLE_API_KEY environment configuration.');
     } finally {
