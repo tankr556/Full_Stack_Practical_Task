@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Project from '../models/Project.js';
 
 export const checkProjectAccess = (allowedRoles = ['admin', 'member', 'viewer']) => {
@@ -6,6 +7,10 @@ export const checkProjectAccess = (allowedRoles = ['admin', 'member', 'viewer'])
       const projectId = req.params.projectId || req.body.projectId;
       if (!projectId) {
         return res.status(400).json({ success: false, message: 'Project ID is required' });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        return res.status(400).json({ success: false, message: 'Invalid Project ID format' });
       }
 
       const project = await Project.findById(projectId);
