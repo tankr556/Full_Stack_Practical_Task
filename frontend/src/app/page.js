@@ -243,7 +243,8 @@ export default function ProjectDetailPage() {
   const handleToggleStatus = async (e, taskToUpdate) => {
     e.stopPropagation();
     const statusOrder = ['todo', 'in_progress', 'done'];
-    const nextStatus = statusOrder[(statusOrder.indexOf(taskToUpdate.status) + 1) % statusOrder.length];
+    const currentIndex = statusOrder.indexOf(taskToUpdate.status);
+    const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
 
     // Optimistic UI Update
     setTasks((prev) =>
@@ -251,8 +252,9 @@ export default function ProjectDetailPage() {
     );
 
     // Live update activity log
+    const readableStatus = nextStatus === 'in_progress' ? 'IN PROGRESS' : nextStatus.toUpperCase();
     setActivities((prev) => [
-      { _id: 'act-' + Date.now(), details: `Updated "${taskToUpdate.title}" status to ${nextStatus.toUpperCase()}`, createdAt: new Date().toISOString() },
+      { _id: 'act-' + Date.now(), details: `Updated "${taskToUpdate.title}" status to ${readableStatus}`, createdAt: new Date().toISOString() },
       ...prev
     ]);
 
@@ -370,7 +372,7 @@ export default function ProjectDetailPage() {
                           cursor: 'pointer'
                         }}
                       >
-                        {task.status.toUpperCase()} 🔄
+                        {task.status === 'in_progress' ? 'IN PROGRESS 🔄' : `${task.status.toUpperCase()} 🔄`}
                       </button>
                     </div>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
