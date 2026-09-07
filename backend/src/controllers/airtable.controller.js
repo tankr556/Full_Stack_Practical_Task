@@ -26,8 +26,7 @@ export const exportToAirtable = async (req, res, next) => {
       });
     }
 
-    const tasks = await Task.find({ project: projectId });
-    if (!tasks || tasks.length === 0) {
+    if (tasks.length === 0) {
       return res.status(200).json({ success: true, message: 'No tasks to export', exportedCount: 0 });
     }
 
