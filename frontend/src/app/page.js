@@ -6,7 +6,7 @@ import '../app/globals.css';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ProjectDetailPage() {
-  const [projectId] = useState('demo-project-123'); // Demo project ID
+  const [projectId, setProjectId] = useState('650f123456789abcdef12345'); // Valid 24-char MongoDB ObjectId
   const [token, setToken] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTllZDhmOTUyN2ExMDg5MWZlMzVjMTYiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODg3OTY2ODEsImV4cCI6MTc4OTQwMTQ4MX0.uGa_CDiBOnZjMu5qnh8-lJ90Tp41fOVzGQMmZMM8we0';
@@ -30,9 +30,29 @@ export default function ProjectDetailPage() {
 
   // Initial Data Fetch
   useEffect(() => {
-    fetchTasks();
-    fetchActivities();
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (projectId && projectId !== 'demo-project-123') {
+      fetchTasks();
+      fetchActivities();
+    }
   }, [projectId]);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success && data.projects && data.projects.length > 0) {
+        setProjectId(data.projects[0]._id);
+      }
+    } catch (err) {
+      // Keep default valid ObjectId
+    }
+  };
 
   const fetchTasks = async () => {
     setLoadingTasks(true);
