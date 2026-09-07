@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import '../app/globals.css';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ProjectDetailPage() {
   const [projectId] = useState('demo-project-123'); // Demo project ID
