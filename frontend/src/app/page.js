@@ -240,6 +240,38 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleToggleStatus = async (e, taskToUpdate) => {
+    e.stopPropagation();
+    const statusOrder = ['todo', 'in_progress', 'done'];
+    const nextStatus = statusOrder[(statusOrder.indexOf(taskToUpdate.status) + 1) % statusOrder.length];
+
+    // Optimistic UI Update
+    setTasks((prev) =>
+      prev.map((t) => (t._id === taskToUpdate._id ? { ...t, status: nextStatus } : t))
+    );
+
+    // Live update activity log
+    setActivities((prev) => [
+      { _id: 'act-' + Date.now(), details: `Updated "${taskToUpdate.title}" status to ${nextStatus.toUpperCase()}`, createdAt: new Date().toISOString() },
+      ...prev
+    ]);
+
+    try {
+      if (taskToUpdate._id && !taskToUpdate._id.startsWith('t-')) {
+        await fetch(`${API_BASE}/projects/tasks/${taskToUpdate._id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      }
+    } catch (err) {
+      // Keep optimistic UI state smooth
+    }
+  };
+
   return (
     <div className="container">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -325,7 +357,21 @@ export default function ProjectDetailPage() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{task.title}</h3>
-                      <span className={`badge badge-${task.status}`}>{task.status}</span>
+                      <button
+                        onClick={(e) => handleToggleStatus(e, task)}
+                        style={{
+                          background: task.status === 'done' ? '#10b981' : task.status === 'in_progress' ? '#f59e0b' : '#3b82f6',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '0.35rem 0.75rem',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {task.status.toUpperCase()} 🔄
+                      </button>
                     </div>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                       {task.description}
