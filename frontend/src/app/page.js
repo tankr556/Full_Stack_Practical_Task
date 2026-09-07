@@ -40,36 +40,36 @@ export default function ProjectDetailPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
 
-  // Initial Data Fetch
+  // Initial Data Fetch - Single pipeline execution to avoid double rendering
   useEffect(() => {
-    fetchProjects();
+    const initData = async () => {
+      let targetProjectId = projectId;
+      try {
+        const res = await fetch(`${API_BASE}/projects`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.projects && data.projects.length > 0) {
+          targetProjectId = data.projects[0]._id;
+          setProjectId(targetProjectId);
+        }
+      } catch (err) {
+        // Keep default valid ObjectId
+      }
+
+      if (targetProjectId) {
+        fetchTasks(targetProjectId);
+        fetchActivities(targetProjectId);
+      }
+    };
+
+    initData();
   }, []);
 
-  useEffect(() => {
-    if (projectId && projectId !== 'demo-project-123') {
-      fetchTasks();
-      fetchActivities();
-    }
-  }, [projectId]);
-
-  const fetchProjects = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/projects`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success && data.projects && data.projects.length > 0) {
-        setProjectId(data.projects[0]._id);
-      }
-    } catch (err) {
-      // Keep default valid ObjectId
-    }
-  };
-
-  const fetchTasks = async () => {
+  const fetchTasks = async (targetProjectId = projectId) => {
     setLoadingTasks(true);
     try {
-      const res = await fetch(`${API_BASE}/projects/${projectId}/tasks?page=1&limit=20`, {
+      const res = await fetch(`${API_BASE}/projects/${targetProjectId}/tasks?page=1&limit=20`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -89,10 +89,10 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const fetchActivities = async () => {
+  const fetchActivities = async (targetProjectId = projectId) => {
     setLoadingActivities(true);
     try {
-      const res = await fetch(`${API_BASE}/projects/${projectId}/activity`, {
+      const res = await fetch(`${API_BASE}/projects/${targetProjectId}/activity`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
