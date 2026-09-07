@@ -14,23 +14,12 @@ export default function ProjectDetailPage() {
     return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTllZDhmOTUyN2ExMDg5MWZlMzVjMTYiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODg3OTY2ODEsImV4cCI6MTc4OTQwMTQ4MX0.uGa_CDiBOnZjMu5qnh8-lJ90Tp41fOVzGQMmZMM8we0';
   });
 
-  const defaultMockTasks = [
-    { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
-    { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
-    { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
-  ];
 
-  // State
-  const [tasks, setTasks] = useState(defaultMockTasks);
-  const [activities, setActivities] = useState([
-    { _id: 'a1', details: 'Added comment to task "Implement Task Comments API"', createdAt: new Date().toISOString() },
-    { _id: 'a2', details: 'Changed status from todo to in_progress', createdAt: new Date(Date.now() - 3600000).toISOString() },
-    { _id: 'a3', details: 'Created task "Setup Authentication Middleware"', createdAt: new Date(Date.now() - 7200000).toISOString() }
-  ]);
-  const [activeTask, setActiveTask] = useState('t1');
-  const [comments, setComments] = useState([
-    { _id: 'c1', body: 'Please verify permissions before merging', createdAt: new Date().toISOString(), author: { name: 'Lead Dev' } }
-  ]);
+  // State - Empty initial states so real created/fetched tasks show up without sample data flash
+  const [tasks, setTasks] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [activeTask, setActiveTask] = useState(null);
+  const [comments, setComments] = useState([]);
   
   // Loading & Error States
   const [loadingTasks, setLoadingTasks] = useState(false);
@@ -73,17 +62,22 @@ export default function ProjectDetailPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success && data.tasks && data.tasks.length > 0) {
+      if (data.success && data.tasks) {
         setTasks(data.tasks);
-        selectTask(data.tasks[0]._id);
+        if (data.tasks.length > 0) {
+          selectTask(data.tasks[0]._id);
+        } else {
+          setActiveTask(null);
+          setComments([]);
+        }
       } else {
-        setTasks(defaultMockTasks);
-        selectTask(defaultMockTasks[0]._id);
+        setTasks([]);
       }
     } catch (err) {
-      setErrorMessage('Operating in demo mode with preloaded sample data.');
-      setTasks(defaultMockTasks);
-      selectTask(defaultMockTasks[0]._id);
+      setErrorMessage('Could not connect to backend server. Please make sure backend is running.');
+      setTasks([]);
+      setActiveTask(null);
+      setComments([]);
     } finally {
       setLoadingTasks(false);
     }
@@ -97,19 +91,13 @@ export default function ProjectDetailPage() {
       });
       const data = await res.json();
       if (data.success && data.activities && data.activities.length > 0) setActivities(data.activities);
-      else setActivities(getMockActivities());
+      else setActivities([]);
     } catch (err) {
-      setActivities(getMockActivities());
+      setActivities([]);
     } finally {
       setLoadingActivities(false);
     }
   };
-
-  const getMockActivities = () => [
-    { _id: 'a1', details: 'Added comment to task "Implement Task Comments API"', createdAt: new Date().toISOString() },
-    { _id: 'a2', details: 'Changed status from todo to in_progress', createdAt: new Date(Date.now() - 3600000).toISOString() },
-    { _id: 'a3', details: 'Created task "Setup Authentication Middleware"', createdAt: new Date(Date.now() - 7200000).toISOString() }
-  ];
 
   const selectTask = async (taskId) => {
     setActiveTask(taskId);
@@ -344,42 +332,46 @@ export default function ProjectDetailPage() {
               </div>
             ) : (
               <div>
-                {tasks.map((task) => (
-                  <div
-                    key={task._id}
-                    onClick={() => selectTask(task._id)}
-                    style={{
-                      padding: '1rem',
-                      borderRadius: '8px',
-                      border: '1px solid var(--border)',
-                      marginBottom: '0.75rem',
-                      background: activeTask === task._id ? '#334155' : 'transparent',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{task.title}</h3>
-                      <button
-                        onClick={(e) => handleToggleStatus(e, task)}
-                        style={{
-                          background: task.status === 'done' ? '#10b981' : task.status === 'in_progress' ? '#f59e0b' : '#3b82f6',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '0.35rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.8rem',
-                          fontWeight: 'bold',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {task.status === 'in_progress' ? 'IN PROGRESS 🔄' : `${task.status.toUpperCase()} 🔄`}
-                      </button>
+                {tasks.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', padding: '1rem 0', textAlign: 'center' }}>No tasks found.</p>
+                ) : (
+                  tasks.map((task) => (
+                    <div
+                      key={task._id}
+                      onClick={() => selectTask(task._id)}
+                      style={{
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border)',
+                        marginBottom: '0.75rem',
+                        background: activeTask === task._id ? '#334155' : 'transparent',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{task.title}</h3>
+                        <button
+                          onClick={(e) => handleToggleStatus(e, task)}
+                          style={{
+                            background: task.status === 'done' ? '#10b981' : task.status === 'in_progress' ? '#f59e0b' : '#3b82f6',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {task.status === 'in_progress' ? 'IN PROGRESS 🔄' : `${task.status.toUpperCase()} 🔄`}
+                        </button>
+                      </div>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                        {task.description}
+                      </p>
                     </div>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                      {task.description}
-                    </p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             )}
           </div>
@@ -438,14 +430,18 @@ export default function ProjectDetailPage() {
               </div>
             ) : (
               <div style={{ maxHeight: '420px', overflowY: 'auto', paddingRight: '0.35rem' }}>
-                {activities.map((act) => (
-                  <div key={act._id} style={{ borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>{act.details}</p>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {new Date(act.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+                {activities.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', padding: '0.5rem 0' }}>No recent activities found.</p>
+                ) : (
+                  activities.map((act) => (
+                    <div key={act._id} style={{ borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
+                      <p style={{ margin: 0, fontSize: '0.9rem' }}>{act.details}</p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        {new Date(act.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </div>
