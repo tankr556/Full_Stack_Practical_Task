@@ -9,6 +9,9 @@ import { errorHandler } from './middleware/error.middleware.js';
 
 const app = express();
 
+// Trust reverse proxy (Render, Heroku, Nginx, etc.) for express-rate-limit
+app.set('trust proxy', 1);
+
 // Set security HTTP headers
 app.use(helmet());
 
