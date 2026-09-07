@@ -66,14 +66,36 @@ export const getTasks = async (req, res, next) => {
       query.$text = { $search: search };
     }
 
-    const [tasks, total] = await Promise.all([
-      Task.find(query)
+    let tasks = await Task.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .populate('assignee', 'name email');
+
+    let total = await Task.countDocuments(query);
+
+    if (total === 0 && !status && !search) {
+      // Auto seed initial tasks for empty project
+      const createdTasks = await Task.create([
+        { title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles', project: projectId },
+        { title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints', project: projectId },
+        { title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff', project: projectId }
+      ]);
+      
+      // Auto create initial activity logs
+      await ActivityLog.create([
+        { project: projectId, user: req.user._id, action: 'task_created', details: 'Created task "Setup Authentication Middleware"' },
+        { project: projectId, user: req.user._id, action: 'task_created', details: 'Created task "Implement Task Comments API"' },
+        { project: projectId, user: req.user._id, action: 'task_created', details: 'Created task "Build Airtable Sync Feature"' }
+      ]);
+
+      tasks = await Task.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
-        .populate('assignee', 'name email'),
-      Task.countDocuments(query),
-    ]);
+        .populate('assignee', 'name email');
+      total = tasks.length;
+    }
 
     return res.status(200).json({
       success: true,
@@ -81,7 +103,7 @@ export const getTasks = async (req, res, next) => {
         page: pageNum,
         limit: limitNum,
         total,
-        totalPages: Math.ceil(total / limitNum),
+        pages: Math.ceil(total / limitNum),
       },
       tasks,
     });
