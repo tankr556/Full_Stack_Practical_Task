@@ -1,0 +1,283 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import '../app/globals.css';
+
+const API_BASE = 'http://localhost:5000/api';
+
+export default function ProjectDetailPage() {
+  const [projectId] = useState('demo-project-123'); // Demo project ID
+  const [token] = useState('demo-jwt-token');
+
+  // State
+  const [tasks, setTasks] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [activeTask, setActiveTask] = useState(null);
+  const [comments, setComments] = useState([]);
+  
+  // Loading & Error States
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [newCommentText, setNewCommentText] = useState('');
+
+  // Initial Data Fetch
+  useEffect(() => {
+    fetchTasks();
+    fetchActivities();
+  }, [projectId]);
+
+  const fetchTasks = async () => {
+    setLoadingTasks(true);
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/tasks?page=1&limit=20`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTasks(data.tasks);
+        if (data.tasks.length > 0) selectTask(data.tasks[0]._id);
+      } else {
+        setTasks([
+          { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
+          { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
+          { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
+        ]);
+      }
+    } catch (err) {
+      setErrorMessage('Failed to connect to backend server. Operating in mock mode.');
+      setTasks([
+        { _id: 't1', title: 'Setup Authentication Middleware', status: 'done', description: 'Validate JWT tokens and roles' },
+        { _id: 't2', title: 'Implement Task Comments API', status: 'in_progress', description: 'Add immutable comments endpoints' },
+        { _id: 't3', title: 'Build Airtable Sync Feature', status: 'todo', description: 'Export project tasks with retry backoff' }
+      ]);
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
+
+  const fetchActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/activity`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) setActivities(data.activities);
+      else setActivities(getMockActivities());
+    } catch (err) {
+      setActivities(getMockActivities());
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
+
+  const getMockActivities = () => [
+    { _id: 'a1', details: 'Added comment to task "Implement Task Comments API"', createdAt: new Date().toISOString() },
+    { _id: 'a2', details: 'Changed status from todo to in_progress', createdAt: new Date(Date.now() - 3600000).toISOString() },
+    { _id: 'a3', details: 'Created task "Setup Authentication Middleware"', createdAt: new Date(Date.now() - 7200000).toISOString() }
+  ];
+
+  const selectTask = async (taskId) => {
+    setActiveTask(taskId);
+    setLoadingComments(true);
+    try {
+      const res = await fetch(`${API_BASE}/projects/tasks/${taskId}/comments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) setComments(data.comments);
+      else setComments([{ _id: 'c1', body: 'Please verify permissions before merging', createdAt: new Date().toISOString(), author: { name: 'Lead Dev' } }]);
+    } catch (err) {
+      setComments([{ _id: 'c1', body: 'Please verify permissions before merging', createdAt: new Date().toISOString(), author: { name: 'Lead Dev' } }]);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // Optimistic Comment Submission with Rollback
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newCommentText.trim() || !activeTask) return;
+
+    const previousComments = [...comments];
+    const optimisticComment = {
+      _id: 'temp-' + Date.now(),
+      body: newCommentText,
+      createdAt: new Date().toISOString(),
+      author: { name: 'Current User (You)' }
+    };
+
+    // Optimistic UI Update
+    setComments((prev) => [...prev, optimisticComment]);
+    setNewCommentText('');
+
+    try {
+      const res = await fetch(`${API_BASE}/projects/tasks/${activeTask}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ body: optimisticComment.body })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        // Rollback
+        setComments(previousComments);
+        setErrorMessage('Failed to add comment. Rolled back optimistic state.');
+      }
+    } catch (err) {
+      // Rollback on network failure
+      setComments(previousComments);
+      setErrorMessage('Network error posting comment. Changes rolled back.');
+    }
+  };
+
+  // Export to Airtable
+  const handleExportAirtable = async () => {
+    setExporting(true);
+    setErrorMessage('');
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/export-airtable`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      alert(data.message || 'Export completed successfully!');
+    } catch (err) {
+      setErrorMessage('Export failed. Verify server AIRTABLE_API_KEY environment configuration.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="container">
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '2rem' }}>🚀 Project Dashboard</h1>
+          <p style={{ color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>Project ID: {projectId}</p>
+        </div>
+        <button className="btn" onClick={handleExportAirtable} disabled={exporting}>
+          {exporting ? 'Exporting to Airtable...' : '📤 Export Tasks to Airtable'}
+        </button>
+      </header>
+
+      {errorMessage && (
+        <div style={{ background: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+          ⚠️ {errorMessage}
+        </div>
+      )}
+
+      <div className="grid">
+        {/* Left Column: Tasks & Active Task Comments */}
+        <div>
+          <div className="card">
+            <h2>📋 Tasks List</h2>
+            {loadingTasks ? (
+              <div>
+                <div className="skeleton"></div>
+                <div className="skeleton"></div>
+                <div className="skeleton"></div>
+              </div>
+            ) : (
+              <div>
+                {tasks.map((task) => (
+                  <div
+                    key={task._id}
+                    onClick={() => selectTask(task._id)}
+                    style={{
+                      padding: '1rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                      marginBottom: '0.75rem',
+                      background: activeTask === task._id ? '#334155' : 'transparent',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{task.title}</h3>
+                      <span className={`badge badge-${task.status}`}>{task.status}</span>
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      {task.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Task Comments Section */}
+          <div className="card">
+            <h2>💬 Task Comments (Immutable)</h2>
+            {loadingComments ? (
+              <div className="skeleton"></div>
+            ) : (
+              <div>
+                {comments.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)' }}>No comments yet.</p>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment._id} style={{ borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <strong>{comment.author?.name || 'Member'}</strong>
+                        <span>{new Date(comment.createdAt).toLocaleTimeString()}</span>
+                      </div>
+                      <p style={{ margin: '0.35rem 0 0 0' }}>{comment.body}</p>
+                    </div>
+                  ))
+                )}
+
+                <form onSubmit={handleAddComment} style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Write a comment... (Optimistic update demo)"
+                    value={newCommentText}
+                    onChange={(e) => setNewCommentText(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      background: '#0f172a',
+                      color: '#fff'
+                    }}
+                  />
+                  <button type="submit" className="btn">Post</button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Activity Feed */}
+        <div>
+          <div className="card">
+            <h2>⚡ Recent Activity Feed</h2>
+            {loadingActivities ? (
+              <div>
+                <div className="skeleton"></div>
+                <div className="skeleton"></div>
+              </div>
+            ) : (
+              <div>
+                {activities.map((act) => (
+                  <div key={act._id} style={{ borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>{act.details}</p>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {new Date(act.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
