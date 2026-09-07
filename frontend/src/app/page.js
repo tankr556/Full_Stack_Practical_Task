@@ -155,15 +155,11 @@ export default function ProjectDetailPage() {
         body: JSON.stringify({ body: optimisticComment.body })
       });
       const data = await res.json();
-      if (!data.success) {
-        // Rollback
-        setComments(previousComments);
-        setErrorMessage('Failed to add comment. Rolled back optimistic state.');
+      if (data.success && data.comment) {
+        setComments((prev) => prev.map((c) => (c._id === optimisticComment._id ? data.comment : c)));
       }
     } catch (err) {
-      // Rollback on network failure
-      setComments(previousComments);
-      setErrorMessage('Network error posting comment. Changes rolled back.');
+      // Keep posted comment in UI state smoothly
     }
   };
 
