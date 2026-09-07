@@ -21,9 +21,9 @@ export default function ProjectDetailPage() {
   const [activeTask, setActiveTask] = useState(null);
   const [comments, setComments] = useState([]);
   
-  // Loading & Error States
-  const [loadingTasks, setLoadingTasks] = useState(false);
-  const [loadingActivities, setLoadingActivities] = useState(false);
+  // Loading & Error States - true by default so Skeleton shows immediately on page load
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [loadingActivities, setLoadingActivities] = useState(true);
   const [loadingComments, setLoadingComments] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
