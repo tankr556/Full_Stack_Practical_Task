@@ -144,6 +144,7 @@ export default function ProjectDetailPage() {
     // Optimistic UI Update
     setComments((prev) => [...prev, optimisticComment]);
     setNewCommentText('');
+    setActivities((prev) => [{ _id: 'act-' + Date.now(), details: `Added comment: "${optimisticComment.body}"`, createdAt: new Date().toISOString() }, ...prev]);
 
     try {
       const res = await fetch(`${API_BASE}/projects/tasks/${activeTask}/comments`, {
@@ -208,6 +209,8 @@ export default function ProjectDetailPage() {
         selectTask(data.task._id);
         setNewTaskTitle('');
         setNewTaskDesc('');
+        // Live update activity feed
+        setActivities((prev) => [{ _id: 'act-' + Date.now(), details: `Created task "${data.task.title}"`, createdAt: new Date().toISOString() }, ...prev]);
       } else {
         // Fallback local task creation
         const newTask = {
@@ -220,6 +223,7 @@ export default function ProjectDetailPage() {
         selectTask(newTask._id);
         setNewTaskTitle('');
         setNewTaskDesc('');
+        setActivities((prev) => [{ _id: 'act-' + Date.now(), details: `Created task "${newTask.title}"`, createdAt: new Date().toISOString() }, ...prev]);
       }
     } catch (err) {
       const newTask = {
@@ -232,6 +236,7 @@ export default function ProjectDetailPage() {
       selectTask(newTask._id);
       setNewTaskTitle('');
       setNewTaskDesc('');
+      setActivities((prev) => [{ _id: 'act-' + Date.now(), details: `Created task "${newTask.title}"`, createdAt: new Date().toISOString() }, ...prev]);
     }
   };
 
