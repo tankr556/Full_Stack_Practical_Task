@@ -14,6 +14,8 @@ A production-ready Task Management REST API built using **Node.js, Express, Mong
 
 ## Folder Structure
 ```text
+├── postman/
+│   └── task-management-api.postman_collection.json  # Complete Postman Collection
 ├── src/
 │   ├── config/
 │   │   └── database.js                       # MongoDB connection setup
