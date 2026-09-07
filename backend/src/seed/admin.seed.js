@@ -3,6 +3,7 @@ dotenv.config();
 
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import Project from '../models/Project.js';
 
 const seedAdmin = async () => {
   try {
@@ -35,8 +36,18 @@ const seedAdmin = async () => {
       role: 'admin',
     });
 
-    await adminUser.save();
-    console.log('Admin account seeded successfully');
+    // Create or find default project
+    let project = await Project.findOne({ name: 'Default Practical Project' });
+    if (!project) {
+      project = new Project({
+        name: 'Default Practical Project',
+        description: 'Demo project for practical task evaluation',
+        createdBy: adminUser._id,
+        members: [{ user: adminUser._id, role: 'admin' }],
+      });
+      await project.save();
+      console.log('Default project seeded successfully with ID:', project._id.toString());
+    }
 
     await mongoose.connection.close();
     process.exit(0);
