@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "e3e8f85f-8f83-4a81-9b2f-4e005088c42a",
-    "name": "E-commerce Backend REST API",
-    "description": "Postman collection for E-commerce REST API with JWT Auth.",
+    "name": "Task Management Backend REST API",
+    "description": "Postman collection for Task Management REST API with JWT Auth.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -32,7 +32,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register Customer",
+          "name": "Register User",
           "request": {
             "method": "POST",
             "header": [
@@ -60,7 +60,7 @@
           "response": []
         },
         {
-          "name": "Login Customer",
+          "name": "Login User",
           "event": [
             {
               "listen": "test",
@@ -68,7 +68,7 @@
                 "exec": [
                   "const responseJson = pm.response.json();",
                   "if (responseJson.token) {",
-                  "    pm.environment.set(\"customerToken\", responseJson.token);",
+                  "    pm.environment.set(\"userToken\", responseJson.token);",
                   "}"
                 ],
                 "type": "text/javascript"
