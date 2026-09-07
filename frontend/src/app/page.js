@@ -429,7 +429,7 @@ export default function ProjectDetailPage() {
 
         {/* Right Column: Activity Feed */}
         <div>
-          <div className="card">
+          <div className="card" style={{ position: 'sticky', top: '1.5rem' }}>
             <h2>⚡ Recent Activity Feed</h2>
             {loadingActivities ? (
               <div>
@@ -437,7 +437,7 @@ export default function ProjectDetailPage() {
                 <div className="skeleton"></div>
               </div>
             ) : (
-              <div>
+              <div style={{ maxHeight: '420px', overflowY: 'auto', paddingRight: '0.35rem' }}>
                 {activities.map((act) => (
                   <div key={act._id} style={{ borderBottom: '1px solid var(--border)', padding: '0.75rem 0' }}>
                     <p style={{ margin: 0, fontSize: '0.9rem' }}>{act.details}</p>
