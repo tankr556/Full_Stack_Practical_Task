@@ -6,7 +6,7 @@ import '../app/globals.css';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ProjectDetailPage() {
-  const [projectId, setProjectId] = useState('650f123456789abcdef12345'); // Valid 24-char MongoDB ObjectId
+  const [projectId, setProjectId] = useState('');
   const [token, setToken] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTllZDhmOTUyN2ExMDg5MWZlMzVjMTYiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3ODg3OTY2ODEsImV4cCI6MTc4OTQwMTQ4MX0.uGa_CDiBOnZjMu5qnh8-lJ90Tp41fOVzGQMmZMM8we0';
@@ -267,7 +267,7 @@ export default function ProjectDetailPage() {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '2rem' }}>🚀 Project Dashboard</h1>
-          <p style={{ color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>Project ID: {projectId}</p>
+          <p style={{ color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>Project ID: {projectId || 'Loading...'}</p>
         </div>
         <button className="btn" onClick={handleExportAirtable} disabled={exporting}>
           {exporting ? 'Exporting to Airtable...' : '📤 Export Tasks to Airtable'}
